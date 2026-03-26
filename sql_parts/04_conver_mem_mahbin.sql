@@ -1,5 +1,5 @@
 -- ============================================================================
--- Table: conver_mem_doccrop
+-- Table: conver_mem_mahbin
 -- ประวัติสนทนา (conversation memory) เก็บข้อความ user + assistant
 -- ============================================================================
 --
@@ -16,7 +16,7 @@
 -- metadata ใช้เก็บข้อมูลเพิ่มเติม เช่น:
 --   {"type": "product_recommendation", "products": [...]}
 
-create table if not exists conver_mem_doccrop (
+create table if not exists conver_mem_mahbin (
     id              bigint generated always as identity primary key,
     user_id         text not null,              -- LINE user ID หรือ fb:xxxxx
     role            text not null,              -- 'user' หรือ 'assistant'
@@ -27,8 +27,8 @@ create table if not exists conver_mem_doccrop (
 
 -- Index สำหรับดึงข้อความตาม user (เรียงตามเวลา)
 create index if not exists idx_conver_mem_user_created
-    on conver_mem_doccrop (user_id, created_at desc);
+    on conver_mem_mahbin (user_id, created_at desc);
 
 -- Index สำหรับ cleanup (ลบข้อความเก่า)
 create index if not exists idx_conver_mem_user_id
-    on conver_mem_doccrop (user_id);
+    on conver_mem_mahbin (user_id);

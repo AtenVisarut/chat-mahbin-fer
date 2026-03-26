@@ -44,20 +44,20 @@ create policy "Allow public update user_fer"
     using (true);
 
 -- ============================================================================
--- conver_mem_doccrop — อ่าน + เขียน + ลบ (memory management)
+-- conver_mem_mahbin — อ่าน + เขียน + ลบ (memory management)
 -- ============================================================================
-alter table conver_mem_doccrop enable row level security;
+alter table conver_mem_mahbin enable row level security;
 
 create policy "Allow public read conver_mem"
-    on conver_mem_doccrop for select
+    on conver_mem_mahbin for select
     using (true);
 
 create policy "Allow public insert conver_mem"
-    on conver_mem_doccrop for insert
+    on conver_mem_mahbin for insert
     with check (true);
 
 create policy "Allow public delete conver_mem"
-    on conver_mem_doccrop for delete
+    on conver_mem_mahbin for delete
     using (true);
 
 -- ============================================================================

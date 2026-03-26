@@ -8,7 +8,7 @@
 --   1. mahbin_npk          — ข้อมูลปุ๋ย ICP + vector embeddings (19 rows)
 --   2. dealers              — ตัวแทนจำหน่าย (414 rows)
 --   3. user_fer(LINE,FACE)  — User tracking (LINE + Facebook)
---   4. conver_mem_doccrop   — ประวัติสนทนา (conversation memory)
+--   4. conver_mem_mahbin   — ประวัติสนทนา (conversation memory)
 --   5. cache                — L2 cache (key-value + TTL)
 --
 -- RPC Functions:

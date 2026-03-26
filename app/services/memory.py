@@ -32,7 +32,7 @@ async def add_to_memory(user_id: str, role: str, content: str, metadata: dict = 
             "metadata": metadata or {}
         }
         
-        result = supabase_client.table('conver_mem_doccrop').insert(data).execute()
+        result = supabase_client.table('conver_mem_mahbin').insert(data).execute()
         logger.info(f"✓ Added to memory: {role} message for user {user_id[:8]}...")
         
         # Clean up old messages (keep last N per user)
@@ -48,7 +48,7 @@ async def get_conversation_context(user_id: str, limit: int = MEMORY_CONTEXT_WIN
             return ""
 
         # Get last N messages for this user
-        result = supabase_client.table('conver_mem_doccrop')\
+        result = supabase_client.table('conver_mem_mahbin')\
             .select('role, content, metadata, created_at')\
             .eq('user_id', user_id)\
             .order('created_at', desc=True)\
@@ -96,7 +96,7 @@ async def cleanup_old_memory(user_id: str):
                 return
 
             # Get all message IDs for this user, ordered by created_at desc
-            result = supabase_client.table('conver_mem_doccrop')\
+            result = supabase_client.table('conver_mem_mahbin')\
                 .select('id')\
                 .eq('user_id', user_id)\
                 .order('created_at', desc=True)\
@@ -110,7 +110,7 @@ async def cleanup_old_memory(user_id: str):
 
             if ids_to_delete:
                 # Delete old messages
-                supabase_client.table('conver_mem_doccrop')\
+                supabase_client.table('conver_mem_mahbin')\
                     .delete()\
                     .in_('id', ids_to_delete)\
                     .execute()
@@ -126,8 +126,8 @@ async def clear_memory(user_id: str):
             logger.warning("Supabase not available")
             return
 
-        # 1. Delete from conver_mem_doccrop table
-        supabase_client.table('conver_mem_doccrop')\
+        # 1. Delete from conver_mem_mahbin table
+        supabase_client.table('conver_mem_mahbin')\
             .delete()\
             .eq('user_id', user_id)\
             .execute()
@@ -143,7 +143,7 @@ async def get_memory_stats(user_id: str) -> dict:
         if not supabase_client:
             return {"total": 0, "user_messages": 0, "assistant_messages": 0}
 
-        result = supabase_client.table('conver_mem_doccrop')\
+        result = supabase_client.table('conver_mem_mahbin')\
             .select('role')\
             .eq('user_id', user_id)\
             .execute()
@@ -175,7 +175,7 @@ async def get_recommended_products(user_id: str, limit: int = 5) -> list:
             return []
 
         # ค้นหาข้อความที่มี metadata เป็น product_recommendation
-        result = supabase_client.table('conver_mem_doccrop')\
+        result = supabase_client.table('conver_mem_mahbin')\
             .select('content, metadata, created_at')\
             .eq('user_id', user_id)\
             .order('created_at', desc=True)\
@@ -223,7 +223,7 @@ async def get_conversation_summary(user_id: str) -> dict:
         if not supabase_client:
             return {}
 
-        result = supabase_client.table('conver_mem_doccrop')\
+        result = supabase_client.table('conver_mem_mahbin')\
             .select('role, content, metadata, created_at')\
             .eq('user_id', user_id)\
             .order('created_at', desc=True)\
@@ -492,7 +492,7 @@ async def get_enhanced_context(user_id: str, current_query: str = "") -> str:
             return ""
 
         # Fetch raw messages from DB
-        result = supabase_client.table('conver_mem_doccrop')\
+        result = supabase_client.table('conver_mem_mahbin')\
             .select('role, content, metadata, created_at')\
             .eq('user_id', user_id)\
             .order('created_at', desc=True)\

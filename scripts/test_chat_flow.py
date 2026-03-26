@@ -28,7 +28,7 @@ async def test_supabase_tables():
     tables = {
         "mahbin_npk": "id",
         "user_fer(LINE,FACE)": "id",
-        "conver_mem_doccrop": "id",
+        "conver_mem_mahbin": "id",
         "cache": "key",
         "dealers": "id",
     }
