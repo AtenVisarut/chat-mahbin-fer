@@ -1,0 +1,27 @@
+-- ============================================================================
+-- Chatbot พี่ม้าบิน — Supabase Database Overview
+-- ============================================================================
+--
+-- Project ใช้ 5 tables + 1 RPC function
+--
+-- Tables:
+--   1. mahbin_npk          — ข้อมูลปุ๋ย ICP + vector embeddings (19 rows)
+--   2. dealers              — ตัวแทนจำหน่าย (414 rows)
+--   3. user_fer(LINE,FACE)  — User tracking (LINE + Facebook)
+--   4. conver_mem_doccrop   — ประวัติสนทนา (conversation memory)
+--   5. cache                — L2 cache (key-value + TTL)
+--
+-- RPC Functions:
+--   - hybrid_search_mahbin_npk()  — Vector + Keyword hybrid search
+--
+-- Extensions ที่ต้องเปิด:
+--   - pgvector (vector similarity search)
+--
+-- วิธีใช้ไฟล์เหล่านี้:
+--   รันทีละไฟล์ตามลำดับหมายเลข ใน Supabase SQL Editor
+--   01 → 02 → 03 → 04 → 05 → 06 → 07
+--
+-- ============================================================================
+
+-- เปิด pgvector extension (ต้องทำก่อน create table ที่มี vector column)
+create extension if not exists vector with schema extensions;
