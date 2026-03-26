@@ -137,80 +137,10 @@ async def register_user_fer(user_id: str, display_name: str) -> bool:
         return False
 
 
-async def get_user(user_id: str) -> Optional[Dict]:
-    """Get user from database"""
-    try:
-        if not supabase_client:
-            return None
-            
-        result = supabase_client.table('users')\
-            .select('*')\
-            .eq('line_user_id', user_id)\
-            .execute()
-        
-        if result.data and len(result.data) > 0:
-            return result.data[0]
-        return None
-        
-    except Exception as e:
-        logger.error(f"Error getting user {user_id}: {e}")
-        return None
-
-
-async def upsert_user(user_id: str, profile_data: Dict) -> bool:
-    """
-    Create or update user record (simplified for registration schema)
-    
-    Args:
-        user_id: LINE user ID
-        profile_data: Profile data from LINE API
-    """
-    try:
-        if not supabase_client:
-            logger.error("Supabase client not available")
-            return False
-        
-        # Simple upsert with only columns that exist in the table
-        data = {
-            "line_user_id": user_id,
-            "display_name": profile_data.get('displayName', 'Unknown')
-        }
-        
-        supabase_client.table('users').upsert(data).execute()
-        logger.info(f"✓ Upserted user {user_id}: {data['display_name']}")
-        
-        return True
-        
-    except Exception as e:
-        logger.error(f"Error upserting user {user_id}: {e}", exc_info=True)
-        return False
-
-
-async def update_last_seen(user_id: str) -> bool:
-    """Update user's last interaction (simplified)"""
-    try:
-        if not supabase_client:
-            return False
-        
-        existing_user = await get_user(user_id)
-        if not existing_user:
-            logger.warning(f"User {user_id} not found for update")
-            return False
-        
-        # Just verify user exists
-        logger.debug(f"✓ Verified user {user_id} exists")
-        return True
-        
-    except Exception as e:
-        logger.error(f"Error updating user {user_id}: {e}")
-        return False
-
-
 async def ensure_user_exists(user_id: str) -> bool:
     """
-    Ensure user exists in database
-    Fetches profile from LINE/FB if new user
-    Always registers/updates in user_fer(LINE,FACE) table
+    Ensure user exists in user_fer(LINE,FACE) table.
+    Fetches profile from LINE/FB API then registers/updates via register_user_fer().
 
     Args:
         user_id: LINE user ID or "fb:{psid}" for Facebook
@@ -219,50 +149,19 @@ async def ensure_user_exists(user_id: str) -> bool:
         True if user exists/created, False if failed
     """
     try:
-        # Check if user exists
-        user = await get_user(user_id)
-
-        if user:
-            # User exists in users table → also ensure user_fer tracking
-            display_name = user.get("display_name", f"User_{user_id[:8]}")
-            await register_user_fer(user_id, display_name)
-            await update_last_seen(user_id)
-            return True
-
-        # New user - detect platform and fetch profile
-        logger.info(f"🆕 New user detected: {user_id}")
-
+        # Detect platform and fetch display name
         if user_id.startswith("fb:"):
-            # Facebook user
-            psid = user_id[3:]  # strip "fb:" prefix
+            psid = user_id[3:]
             profile = await get_facebook_profile(psid)
             fallback_name = f"User_fb:{psid[:8]}"
         else:
-            # LINE user
             profile = await get_line_profile(user_id)
             fallback_name = f"User_{user_id[:8]}"
 
-        if profile:
-            # Create user with profile data
-            success = await upsert_user(user_id, profile)
-            display_name = profile.get("displayName", fallback_name)
-        else:
-            # Profile fetch failed, create with minimal data
-            logger.warning(f"Failed to fetch profile for {user_id}, creating with minimal data")
-            minimal_profile = {
-                "displayName": fallback_name,
-                "pictureUrl": None,
-                "statusMessage": None
-            }
-            success = await upsert_user(user_id, minimal_profile)
-            display_name = fallback_name
+        display_name = profile.get("displayName", fallback_name) if profile else fallback_name
 
-        if success:
-            logger.info(f"✅ User {user_id} registered successfully")
-            # Register in user_fer(LINE,FACE) table
-            await register_user_fer(user_id, display_name)
-
-        return success
+        # register_user_fer handles both insert (new) and update (existing)
+        return await register_user_fer(user_id, display_name)
 
     except Exception as e:
         logger.error(f"Error ensuring user exists {user_id}: {e}", exc_info=True)

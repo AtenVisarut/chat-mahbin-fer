@@ -5,7 +5,7 @@ from typing import List, Dict, Optional, Tuple
 from app.dependencies import openai_client, supabase_client
 from app.services.memory import add_to_memory, get_conversation_context, get_recommended_products, get_enhanced_context
 from app.utils.text_processing import extract_keywords_from_question, post_process_answer
-from app.services.product.recommendation import recommend_products_by_intent, hybrid_search_products, filter_products_by_category
+from app.services.product.recommendation import hybrid_search_products, filter_products_by_category
 from app.config import USE_AGENTIC_RAG
 from app.prompts import GENERAL_CHAT_PROMPT, ERROR_GENERIC, ERROR_AI_UNAVAILABLE, GREETINGS, GREETING_KEYWORDS
 from app.services.dealer_lookup import (
