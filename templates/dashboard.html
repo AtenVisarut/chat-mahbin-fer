@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - Plant Disease Bot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .health-status {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        
+        .health-healthy {
+            background: #10b981;
+            color: white;
+        }
+        
+        .health-degraded {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .health-unhealthy {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-card .label {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .chart-container h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .chart {
+            width: 100%;
+            height: 300px;
+        }
+        
+        .list-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .list-container h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .list-item:last-child {
+            border-bottom: none;
+        }
+        
+        .list-item .name {
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .list-item .count {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+        }
+        
+        .alert-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        
+        .alert-box.critical {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+        }
+        
+        .alert-box .alert-title {
+            font-weight: bold;
+            color: #92400e;
+            margin-bottom: 5px;
+        }
+        
+        .alert-box.critical .alert-title {
+            color: #991b1b;
+        }
+        
+        .alert-box .alert-message {
+            color: #78350f;
+            font-size: 0.9em;
+        }
+        
+        .alert-box.critical .alert-message {
+            color: #7f1d1d;
+        }
+        
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+        
+        .refresh-btn:hover {
+            background: #5568d3;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 1.2em;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .stat-card .value {
+                font-size: 2em;
+            }
+        }
+        
+        .timestamp {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+        
+        /* Date Range Selector */
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .date-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .date-selector label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .date-selector select {
+            padding: 10px 15px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            background: white;
+            color: #333;
+            transition: all 0.3s;
+        }
+        
+        .date-selector select:hover {
+            border-color: #5568d3;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        }
+        
+        /* Export Buttons */
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .export-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .export-csv {
+            background: #10b981;
+            color: white;
+        }
+        
+        .export-csv:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+        
+        .export-pdf {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .export-pdf:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+        
+        /* Comparison View */
+        .change {
+            font-size: 0.5em;
+            margin-left: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .change.positive {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .change.negative {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .change.neutral {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        /* Performance Metrics */
+        .performance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .performance-item {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .performance-item h4 {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+        }
+        
+        .performance-item .perf-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        /* Mobile Optimization */
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .stat-card .value {
+                font-size: 2em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .date-selector select {
+                width: 100%;
+            }
+            
+            .export-buttons {
+                flex-direction: column;
+            }
+            
+            .export-btn {
+                width: 100%;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .performance-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            #hourlyActivity {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)) !important;
+            }
+        }
+        
+        /* Loading State */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>กำลังโหลดข้อมูล...</p>
+        </div>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>🌱 Chatbot-ladda Analytics</h1>
+            <p>ระบบติดตามและวิเคราะห์การใช้งานChatbot-ladda</p>
+            <div id="healthStatus" class="health-status">กำลังโหลด...</div>
+            <br>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                <button class="refresh-btn" onclick="loadDashboard()">🔄 รีเฟรช</button>
+                <a href="/logout" style="text-decoration: none;">
+                    <button class="refresh-btn" style="background: #ef4444;">🚪 ออกจากระบบ</button>
+                </a>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="date-selector">
+                <label for="dateRange">📅 ช่วงเวลา:</label>
+                <select id="dateRange" onchange="loadDashboard()">
+                    <option value="1">วันนี้</option>
+                    <option value="7">7 วันที่แล้ว</option>
+                    <option value="30">30 วันที่แล้ว</option>
+                    <option value="90">90 วันที่แล้ว</option>
+                </select>
+            </div>
+            
+            <div class="export-buttons">
+                <button class="export-btn export-csv" onclick="exportCSV()">
+                    📥 Export CSV
+                </button>
+                <button class="export-btn export-pdf" onclick="exportPDF()">
+                    📄 Export PDF
+                </button>
+            </div>
+        </div>
+        
+        <div id="alerts"></div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>👥 ผู้ใช้งาน</h3>
+                <div class="value">
+                    <span id="uniqueUsers">-</span>
+                    <span class="change" id="usersChange"></span>
+                </div>
+                <div class="label">คนต่อวัน</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>📸 รูปภาพ</h3>
+                <div class="value">
+                    <span id="imagesAnalyzed">-</span>
+                    <span class="change" id="imagesChange"></span>
+                </div>
+                <div class="label">รูปที่วิเคราะห์</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>💬 คำถาม</h3>
+                <div class="value">
+                    <span id="questionsAsked">-</span>
+                    <span class="change" id="questionsChange"></span>
+                </div>
+                <div class="label">คำถามที่ถาม</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>⚡ Response Time</h3>
+                <div class="value">
+                    <span id="avgResponseTime">-</span>
+                    <span class="change" id="responseTimeChange"></span>
+                </div>
+                <div class="label">มิลลิวินาที</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>❌ Error Rate</h3>
+                <div class="value">
+                    <span id="errorRate">-</span>
+                    <span class="change" id="errorRateChange"></span>
+                </div>
+                <div class="label">เปอร์เซ็นต์</div>
+            </div>
+        </div>
+        
+        <div class="grid-2">
+            <div class="list-container">
+                <h2>🐛 โรคที่พบบ่อยที่สุด</h2>
+                <div id="topDiseases">กำลังโหลด...</div>
+            </div>
+            
+            <div class="list-container">
+                <h2>💊 ผลิตภัณฑ์ที่แนะนำบ่อยที่สุด</h2>
+                <div id="topProducts">กำลังโหลด...</div>
+            </div>
+            
+            <div class="list-container">
+                <h2>📍 จังหวัดที่มีผู้ใช้งานมากที่สุด (Top 5)</h2>
+                <div id="topProvinces">กำลังโหลด...</div>
+            </div>
+        </div>
+        
+        <div class="list-container">
+            <h2>📊 กิจกรรมรายวัน (Daily Activity)</h2>
+            <div id="dailyActivity" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;">
+                กำลังโหลด...
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h2>📈 Trend Charts</h2>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
+                <div>
+                    <canvas id="chartUsers" class="chart"></canvas>
+                </div>
+                <div>
+                    <canvas id="chartRequests" class="chart"></canvas>
+                </div>
+                <div>
+                    <canvas id="chartResponseTime" class="chart"></canvas>
+                </div>
+                <div>
+                    <canvas id="chartErrorRate" class="chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="list-container">
+            <h2>🔍 ประเภทศัตรูพืช</h2>
+            <div id="pestTypes">กำลังโหลด...</div>
+        </div>
+        
+        <div class="list-container">
+            <h2>🎯 Performance Metrics</h2>
+            <div class="performance-grid">
+                <div class="performance-item">
+                    <h4>📊 Detection Cache</h4>
+                    <div class="perf-value" id="cacheHits">-</div>
+                    <div style="font-size: 0.8em; color: #666; margin-top: 5px;">รูปภาพที่ cache</div>
+                </div>
+                <div class="performance-item">
+                    <h4>💊 Product Cache</h4>
+                    <div class="perf-value" id="cacheMisses">-</div>
+                    <div style="font-size: 0.8em; color: #666; margin-top: 5px;">ผลิตภัณฑ์ที่ cache</div>
+                </div>
+                <div class="performance-item">
+                    <h4>📚 Knowledge Cache</h4>
+                    <div class="perf-value" id="cacheHitRate">-</div>
+                    <div style="font-size: 0.8em; color: #666; margin-top: 5px;">ความรู้ที่ cache</div>
+                </div>
+                <div class="performance-item">
+                    <h4>💾 Total Memory</h4>
+                    <div class="perf-value" id="totalMemory">-</div>
+                    <div style="font-size: 0.8em; color: #666; margin-top: 5px;">รายการทั้งหมด</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="timestamp" id="timestamp"></div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let currentData = null;
+        let previousData = null;
+        // Hold chart instances so we can update/destroy
+        window.trendCharts = window.trendCharts || {};
+        
+        async function loadDashboard() {
+            try {
+                // Show loading
+                document.getElementById('loadingOverlay').classList.add('active');
+                
+                // Get selected date range
+                const days = document.getElementById('dateRange').value;
+                
+                // Fetch current period data
+                const response = await fetch(`/api/analytics/dashboard?days=${days}`);
+                currentData = await response.json();
+                
+                // Fetch previous period data for comparison
+                const prevResponse = await fetch(`/api/analytics/dashboard?days=${days * 2}`);
+                previousData = await prevResponse.json();
+                
+                // Update health status
+                if (currentData.health) {
+                    updateHealthStatus(currentData.health);
+                }
+                
+                // Update overview stats with comparison
+                updateStatWithComparison('uniqueUsers', 'usersChange', 
+                    currentData.overview.unique_users, 
+                    previousData.overview.unique_users);
+                
+                updateStatWithComparison('imagesAnalyzed', 'imagesChange',
+                    currentData.overview.images_analyzed,
+                    previousData.overview.images_analyzed);
+                
+                updateStatWithComparison('questionsAsked', 'questionsChange',
+                    currentData.overview.questions_asked,
+                    previousData.overview.questions_asked);
+                
+                updateStatWithComparison('avgResponseTime', 'responseTimeChange',
+                    Math.round(currentData.performance.avg_response_time_ms),
+                    Math.round(previousData.performance.avg_response_time_ms),
+                    true); // true = lower is better
+                
+                const errorRate = currentData.performance.error_rate_percent.toFixed(1);
+                const prevErrorRate = previousData.performance.error_rate_percent;
+                document.getElementById('errorRate').textContent = errorRate + '%';
+                updateChangeIndicator('errorRateChange', errorRate, prevErrorRate, true);
+                
+                // Update alerts
+                updateAlerts(currentData.alerts);
+                
+                // Update top diseases
+                updateList('topDiseases', currentData.top_diseases, currentData.overview.images_analyzed);
+                
+                // Update top products
+                updateList('topProducts', currentData.top_products, currentData.overview.images_analyzed);
+                
+                // Update top provinces
+                // Note: For provinces, we calculate percentage based on total users with province data, 
+                // but here we can just use the max count for the bar width or total unique users.
+                // Let's use total unique users as the base for percentage.
+                updateList('topProvinces', currentData.top_provinces, currentData.overview.unique_users);
+                
+                // Update pest types
+                updateList('pestTypes', currentData.pest_types, currentData.overview.images_analyzed);
+                
+                // Update daily chart
+                updateDailyChart(currentData.daily_activity);
+                
+                // Update performance metrics
+                updatePerformanceMetrics(currentData);
+
+                // Render trend charts
+                renderTrendCharts(currentData);
+                
+                // Update timestamp
+                const rangeText = days == 1 ? 'วันนี้' : `${days} วันที่แล้ว`;
+                document.getElementById('timestamp').textContent = 
+                    `อัปเดตล่าสุด: ${new Date().toLocaleString('th-TH')} | ช่วงเวลา: ${rangeText}`;
+                
+                // Hide loading
+                document.getElementById('loadingOverlay').classList.remove('active');
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                document.getElementById('loadingOverlay').classList.remove('active');
+                alert('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+        
+        function updateStatWithComparison(valueId, changeId, current, previous, lowerIsBetter = false) {
+            document.getElementById(valueId).textContent = current;
+            updateChangeIndicator(changeId, current, previous, lowerIsBetter);
+        }
+        
+        function updateChangeIndicator(changeId, current, previous, lowerIsBetter = false) {
+            const changeEl = document.getElementById(changeId);
+            
+            if (!previous || previous === 0) {
+                changeEl.textContent = '';
+                changeEl.className = 'change';
+                return;
+            }
+            
+            const change = ((current - previous) / previous * 100);
+            const absChange = Math.abs(change);
+            
+            if (absChange < 0.1) {
+                changeEl.textContent = '→';
+                changeEl.className = 'change neutral';
+            } else {
+                const isPositive = lowerIsBetter ? change < 0 : change > 0;
+                const arrow = change > 0 ? '↑' : '↓';
+                changeEl.textContent = `${change > 0 ? '+' : ''}${change.toFixed(1)}% ${arrow}`;
+                changeEl.className = `change ${isPositive ? 'positive' : 'negative'}`;
+            }
+        }
+        
+        function updatePerformanceMetrics(data) {
+            // Get cache stats from health endpoint
+            fetch('/health')
+                .then(res => res.json())
+                .then(health => {
+                    const cache = health.cache || {};
+                    const rateLimit = health.rate_limiting || {};
+                    
+                    // Calculate cache metrics
+                    const detectionCache = cache.detection_cache_size || 0;
+                    const productCache = cache.product_cache_size || 0;
+                    const knowledgeCache = cache.knowledge_cache_size || 0;
+                    const totalMemory = cache.total_memory_items || 0;
+                    
+                    // Show cache sizes
+                    document.getElementById('cacheHits').textContent = detectionCache;
+                    document.getElementById('cacheMisses').textContent = productCache;
+                    document.getElementById('cacheHitRate').textContent = knowledgeCache;
+                    document.getElementById('totalMemory').textContent = totalMemory;
+                })
+                .catch(err => {
+                    console.error('Failed to load performance metrics:', err);
+                    // Show error state
+                    document.getElementById('cacheHitRate').textContent = 'N/A';
+                    document.getElementById('cacheHits').textContent = '0';
+                    document.getElementById('cacheMisses').textContent = '0';
+                    document.getElementById('totalMemory').textContent = '0';
+                });
+        }
+        
+        function updateHealthStatus(health) {
+            const statusEl = document.getElementById('healthStatus');
+            const status = health.status;
+            
+            statusEl.className = 'health-status health-' + status;
+            
+            if (status === 'healthy') {
+                statusEl.textContent = '✅ ระบบทำงานปกติ';
+            } else if (status === 'degraded') {
+                statusEl.textContent = '⚠️ ระบบทำงานช้า';
+            } else {
+                statusEl.textContent = '🚨 ระบบมีปัญหา';
+            }
+        }
+        
+        function updateAlerts(alerts) {
+            const alertsEl = document.getElementById('alerts');
+            
+            if (!alerts || alerts.length === 0) {
+                alertsEl.innerHTML = '';
+                return;
+            }
+            
+            let html = '<div class="list-container"><h2>⚠️ การแจ้งเตือน</h2>';
+            
+            alerts.forEach(alert => {
+                const isCritical = alert.severity === 'critical';
+                html += `
+                    <div class="alert-box ${isCritical ? 'critical' : ''}">
+                        <div class="alert-title">${alert.alert_type}</div>
+                        <div class="alert-message">${alert.message}</div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            alertsEl.innerHTML = html;
+        }
+        
+        function updateList(elementId, items, total) {
+            const el = document.getElementById(elementId);
+            
+            if (!items || items.length === 0) {
+                el.innerHTML = '<p style="color: #999; text-align: center;">ไม่มีข้อมูล</p>';
+                return;
+            }
+            
+            let html = '';
+            const maxCount = items[0].count || 1;
+            
+            items.forEach(item => {
+                const name = item.name || item.type;
+                const count = item.count;
+                const percentage = total > 0 ? (count / total * 100) : 0;
+                const barWidth = maxCount > 0 ? (count / maxCount * 100) : 0;
+                
+                html += `
+                    <div class="list-item">
+                        <div style="flex: 1;">
+                            <div class="name">${name}</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${barWidth}%"></div>
+                            </div>
+                        </div>
+                        <div class="count">${count}</div>
+                    </div>
+                `;
+            });
+            
+            el.innerHTML = html;
+        }
+        
+        function updateDailyChart(dailyData) {
+            const container = document.getElementById('dailyActivity');
+            
+            if (!dailyData || Object.keys(dailyData).length === 0) {
+                container.innerHTML = '<p style="color: #999; text-align: center;">ไม่มีข้อมูล</p>';
+                return;
+            }
+            
+            // Sort by date
+            const sortedDates = Object.keys(dailyData).sort();
+            
+            let html = '';
+            sortedDates.forEach(date => {
+                const count = dailyData[date];
+                // Format date nicely (e.g., "21 Nov")
+                const dateObj = new Date(date);
+                const dateText = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+                
+                html += `
+                    <div style="
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        padding: 15px;
+                        border-radius: 10px;
+                        text-align: center;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    ">
+                        <div style="font-size: 0.9em; opacity: 0.9; margin-bottom: 5px;">
+                            📅 ${dateText}
+                        </div>
+                        <div style="font-size: 2em; font-weight: bold;">
+                            ${count}
+                        </div>
+                        <div style="font-size: 0.8em; opacity: 0.8; margin-top: 5px;">
+                            requests
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function renderTrendCharts(data) {
+            try {
+                const labels = Object.keys(data.daily_activity).sort();
+
+                // Users
+                const usersData = labels.map(d => data.daily_users && data.daily_users[d] ? data.daily_users[d] : 0);
+
+                // Requests
+                const requestsData = labels.map(d => data.daily_requests && data.daily_requests[d] ? data.daily_requests[d] : 0);
+
+                // Response time (ms)
+                const responseData = labels.map(d => data.daily_response_time && data.daily_response_time[d] ? data.daily_response_time[d] : 0);
+
+                // Error rate (%)
+                const errorData = labels.map(d => data.daily_error_rate && data.daily_error_rate[d] ? data.daily_error_rate[d] : 0);
+
+                const ctxUsers = document.getElementById('chartUsers').getContext('2d');
+                const ctxRequests = document.getElementById('chartRequests').getContext('2d');
+                const ctxResp = document.getElementById('chartResponseTime').getContext('2d');
+                const ctxErr = document.getElementById('chartErrorRate').getContext('2d');
+
+                // Helper to create/update charts
+                function createOrUpdate(id, ctx, cfg) {
+                    if (window.trendCharts[id]) {
+                        window.trendCharts[id].data = cfg.data;
+                        window.trendCharts[id].options = cfg.options || window.trendCharts[id].options;
+                        window.trendCharts[id].update();
+                    } else {
+                        window.trendCharts[id] = new Chart(ctx, cfg);
+                    }
+                }
+
+                createOrUpdate('users', ctxUsers, {
+                    type: 'line',
+                    data: { labels: labels, datasets: [{ label: 'Unique Users', data: usersData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', tension: 0.3 }] },
+                    options: { responsive: true, plugins: { legend: { display: true } } }
+                });
+
+                createOrUpdate('requests', ctxRequests, {
+                    type: 'line',
+                    data: { labels: labels, datasets: [{ label: 'Requests', data: requestsData, borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.1)', tension: 0.3 }] },
+                    options: { responsive: true }
+                });
+
+                createOrUpdate('response', ctxResp, {
+                    type: 'line',
+                    data: { labels: labels, datasets: [{ label: 'Avg Response Time (ms)', data: responseData, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.08)', tension: 0.3 }] },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                });
+
+                createOrUpdate('error', ctxErr, {
+                    type: 'line',
+                    data: { labels: labels, datasets: [{ label: 'Error Rate (%)', data: errorData, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)', tension: 0.3 }] },
+                    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                });
+
+            } catch (err) {
+                console.error('Failed to render trend charts:', err);
+            }
+        }
+        
+        // Export to CSV
+        function exportCSV() {
+            if (!currentData) {
+                alert('กรุณารอข้อมูลโหลดเสร็จก่อน');
+                return;
+            }
+            
+            const days = document.getElementById('dateRange').value;
+            const rangeText = days == 1 ? 'today' : `${days}days`;
+            
+            // Build CSV content
+            let csv = 'Plant Disease Bot Analytics Report\n';
+            csv += `Date Range: ${rangeText}\n`;
+            csv += `Generated: ${new Date().toLocaleString('th-TH')}\n\n`;
+            
+            // Overview
+            csv += 'Overview\n';
+            csv += 'Metric,Value\n';
+            csv += `Unique Users,${currentData.overview.unique_users}\n`;
+            csv += `Images Analyzed,${currentData.overview.images_analyzed}\n`;
+            csv += `Questions Asked,${currentData.overview.questions_asked}\n`;
+            csv += `Total Requests,${currentData.overview.total_requests}\n`;
+            csv += `Errors,${currentData.overview.errors}\n`;
+            csv += `Avg Response Time (ms),${currentData.performance.avg_response_time_ms.toFixed(2)}\n`;
+            csv += `Error Rate (%),${currentData.performance.error_rate_percent.toFixed(2)}\n\n`;
+            
+            // Top Diseases
+            csv += 'Top Diseases\n';
+            csv += 'Disease,Count\n';
+            currentData.top_diseases.forEach(d => {
+                csv += `"${d.name}",${d.count}\n`;
+            });
+            csv += '\n';
+            
+            // Top Products
+            csv += 'Top Products\n';
+            csv += 'Product,Count\n';
+            currentData.top_products.forEach(p => {
+                csv += `"${p.name}",${p.count}\n`;
+            });
+            
+            // Download
+            // Download
+            // Add BOM (Byte Order Mark) for Excel to recognize UTF-8
+            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+            const blob = new Blob([bom, csv], { type: 'text/csv;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `analytics_${rangeText}_${Date.now()}.csv`;
+            link.click();
+        }
+        
+        // Export to PDF
+        async function exportPDF() {
+            if (!currentData) {
+                alert('กรุณารอข้อมูลโหลดเสร็จก่อน');
+                return;
+            }
+            
+            // Show loading state on button if possible, or just alert
+            const btn = document.querySelector('button[onclick="exportPDF()"]');
+            let originalText = '📄 Export PDF';
+            if (btn) {
+                originalText = btn.innerText;
+                btn.innerText = '⏳ กำลังสร้าง...';
+                btn.disabled = true;
+            }
+            
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                // Capture the container
+                const element = document.querySelector('.container');
+                
+                // Use html2canvas
+                const canvas = await html2canvas(element, {
+                    scale: 2, // Higher scale for better quality
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#f8f9fa' // Match body background
+                });
+                
+                const imgData = canvas.toDataURL('image/png');
+                
+                // Calculate dimensions to fit A4
+                const imgWidth = 210; // A4 width in mm
+                const pageHeight = 295; // A4 height in mm (slightly less to avoid margin issues)
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                // Add first page
+                doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                // Add more pages if content is long
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    doc.addPage();
+                    doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                const days = document.getElementById('dateRange').value;
+                const rangeText = days == 1 ? 'today' : `${days}days`;
+                doc.save(`analytics_${rangeText}_${Date.now()}.pdf`);
+                
+            } catch (error) {
+                console.error('Export PDF failed:', error);
+                alert('เกิดข้อผิดพลาดในการสร้าง PDF: ' + error.message);
+            } finally {
+                if (btn) {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                }
+            }
+        }
+        
+        // Load dashboard on page load
+        loadDashboard();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>

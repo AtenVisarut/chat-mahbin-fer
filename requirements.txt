@@ -1,0 +1,41 @@
+# FastAPI and server (lightweight versions)
+fastapi==0.115.0
+uvicorn==0.32.0
+pydantic==2.9.2
+
+# HTTP client (for Agro-Risk API) - ต้องใช้ <0.28 เพื่อ compatible กับ supabase
+httpx==0.27.2
+
+# OpenAI (for chat, Q&A)
+openai==1.54.0
+
+# OpenRouter (for Gemini 2.5 Pro disease detection - vision)
+# Uses OpenAI-compatible API via openai library
+
+# Supabase client (ลดเวอร์ชันลงเพื่อเลี่ยง Conflict)
+supabase==2.8.0 
+
+# Image processing (lightweight)
+Pillow==10.4.0
+
+# Environment variables
+python-dotenv==1.0.1
+
+# Utilities
+python-multipart==0.0.12
+
+# Rate limiting
+slowapi==0.1.9
+
+# Redis cache (optional - for scale-out support)
+redis>=5.0.0
+upstash-redis>=1.0.0
+
+# Security
+itsdangerous==2.2.0
+
+# LINE Bot SDK
+line-bot-sdk==3.14.0
+
+# Templates
+jinja2==3.1.4

@@ -1,0 +1,54 @@
+"""
+Question Templates for Interactive Diagnosis
+Provides question templates to gather additional information from users
+"""
+
+def get_initial_questions_message() -> str:
+    """
+    Returns the initial question template to ask users after they upload an image
+    This gathers context for more accurate disease detection
+    """
+    return """✅ ได้รับรูปแล้วครับ
+
+👉 เพื่อความแม่นยำในการวินิจฉัย กรุณาตอบคำถามเพิ่มเติมครับ:
+
+1️⃣ **ชนิดพืช**: ทุเรียน/มะม่วง/ข้าว/อื่นๆ?
+2️⃣ **ตำแหน่งอาการ**: ใบ/ลำต้น/ผล/ราก?
+3️⃣ **ลักษณะอาการ**:
+   • สีของจุด/แผล (น้ำตาล/เหลือง/ดำ/ขาว)
+   • พื้นที่ที่พบเสียหาย (แล้กใบ/ปลายใบ/กลางใบ/ทั่วใบ)
+   • ขึ้นพองหรือไม่ (ถ้าขึ้น สีและขนาด)
+
+4️⃣ **ระยะเวลาอาการ**: เพิ่งพบหรือนานแค่ไหน?
+
+ตัวอย่างการตอบกลับ:
+"ทุเรียน ใบมีจุดสีน้ำตาล เห็นแผลตรงกลางใบ เกิดมา 3 วัน"
+
+ยิ่งให้ข้อมูลเยอะ ยิ่งวิเคราะห์ได้แม่นยำครับ! 🔬
+
+หรือพิมพ์ "ข้าม" เพื่อวิเคราะห์ทันที"""
+
+
+def get_analyzing_with_info_message() -> str:
+    """Message to show when analyzing with user-provided context"""
+    return "รับทราบข้อมูลครับ กำลังวิเคราะห์อย่างละเอียด... 🔍🌱"
+
+
+def get_skip_analysis_message() -> str:
+    """Message to show when user skips questions"""
+    return "เข้าใจครับ กำลังวิเคราะห์จากรูปภาพ... 🔍"
+
+
+def should_skip_questions(text: str) -> bool:
+    """
+    Check if user wants to skip questions and analyze immediately
+
+    Args:
+        text: User's text message
+
+    Returns:
+        True if user wants to skip, False otherwise
+    """
+    skip_keywords = ["ข้าม", "skip", "วิเคราะห์เลย", "ไม่ต้อง", "ไม่รู้"]
+    text_lower = text.lower().strip()
+    return any(keyword in text_lower for keyword in skip_keywords)
